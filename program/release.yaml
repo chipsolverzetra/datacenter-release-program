@@ -1,0 +1,582 @@
+# =============================================================================
+# PLAN OF RECORD — FICTIONAL / ILLUSTRATIVE ONLY
+# =============================================================================
+# This file describes a completely fictional release program created to
+# demonstrate technical program management artifacts. "Meridian Compute",
+# the "MBX-8 baseboard", all people, dates, and events are invented.
+# It is not affiliated with, and does not describe, any real company,
+# product, or employer (including NVIDIA).
+# =============================================================================
+
+program:
+  name: "Meridian MBX-8 BMC Firmware v2.4.0 Release Program"
+  vendor: "Meridian Compute (fictional vendor)"
+  product: "MBX-8 baseboard (fictional HGX-class AI compute tray)"
+  release: "BMC firmware v2.4.0"
+  production_target: "2027-01-15"
+  plan_of_record_version: "1.3"
+  status_as_of: "2026-11-20"          # date the generated status report is written "as of"
+  report_week: "Week of November 16, 2026"
+  fictional: true
+
+workstreams:
+  - id: FW
+    name: Firmware
+    lead: fw_lead
+  - id: HW
+    name: Hardware
+    lead: hw_lead
+  - id: SW
+    name: System Software
+    lead: sw_lead
+  - id: QA
+    name: QA / Validation
+    lead: qa_lead
+  - id: OEM
+    name: OEM Enablement
+    lead: oem_lead
+  - id: CSP
+    name: CSP Deployment
+    lead: csp_lead
+
+# All named people are fictional. Timezones are stated explicitly because the
+# program runs across Santa Clara, Taipei, and Hyderabad.
+people:
+  tpm:      { name: "R. Okafor",  role: "Program TPM",          location: "Santa Clara (PT, UTC-8)" }
+  fw_lead:  { name: "A. Sharma",  role: "Firmware Lead",        location: "Santa Clara (PT, UTC-8)" }
+  hw_lead:  { name: "Wei Chen",   role: "Hardware Lead",        location: "Taipei (CST, UTC+8)" }
+  sw_lead:  { name: "Arjun Rao",  role: "System Software Lead", location: "Hyderabad (IST, UTC+5:30)" }
+  qa_lead:  { name: "L. Gomez",   role: "QA / Validation Lead", location: "Santa Clara (PT, UTC-8)" }
+  oem_lead: { name: "J. Park",    role: "OEM Enablement Lead",  location: "Taipei (CST, UTC+8)" }
+  csp_lead: { name: "S. Iyer",    role: "CSP Deployment Lead",  location: "Hyderabad (IST, UTC+5:30)" }
+  sec_arch: { name: "D. Kim",     role: "Security Architect",   location: "Santa Clara (PT, UTC-8)" }
+  vp_eng:   { name: "M. Alvarez", role: "VP Engineering",       location: "Santa Clara (PT, UTC-8)" }
+  vp_ops:   { name: "T. Nguyen",  role: "VP Operations",        location: "Santa Clara (PT, UTC-8)" }
+
+# status: done | on-track | at-risk
+# type: milestone (default) | gate
+# slip_days: forecast slip vs plan (0 = on plan); used by the status report
+milestones:
+  # ---------------- Firmware ----------------
+  - id: FW-01
+    name: "Feature complete — all v2.4.0 commits landed"
+    owner: fw_lead
+    workstream: FW
+    start: "2026-10-05"
+    end: "2026-10-23"
+    deps: []
+    status: done
+    deliverables:
+      - "All 34 planned features merged to main"
+      - "Feature flag inventory published"
+
+  - id: G1
+    type: gate
+    name: "Gate 1 — Code Freeze"
+    owner: tpm
+    workstream: FW
+    start: "2026-10-26"
+    end: "2026-10-26"
+    deps: [FW-01]
+    status: done
+    entry_criteria:
+      - "All P0/P1 bugs closed or formally waived"
+      - "Feature branches merged; regression suite green on latest nightly"
+      - "Feature flag inventory reviewed with QA"
+    exit_criteria:
+      - "Freeze declared in writing to all workstreams"
+      - "Hotfix-branch policy activated (cherry-pick only, 2 reviewers)"
+      - "RC1 build kicked off"
+
+  - id: FW-03
+    name: "RC1 build + smoke test pass"
+    owner: fw_lead
+    workstream: FW
+    start: "2026-10-27"
+    end: "2026-11-06"
+    deps: [G1]
+    status: done
+    deliverables:
+      - "RC1 image signed and published to artifact store"
+      - "24h smoke pass on 8 DVT systems"
+
+  - id: G2
+    type: gate
+    name: "Gate 2 — RC1 Ready"
+    owner: tpm
+    workstream: FW
+    start: "2026-11-06"
+    end: "2026-11-06"
+    deps: [FW-03]
+    status: done
+    entry_criteria:
+      - "RC1 build passes 24h smoke"
+      - "No new P0 in the preceding 48h"
+    exit_criteria:
+      - "RC1 formally handed to QA/Validation"
+      - "Known-issue list published to OEM/CSP partners"
+
+  - id: FW-04
+    name: "RC2 build with regression fixes"
+    owner: fw_lead
+    workstream: FW
+    start: "2026-11-16"
+    end: "2026-11-27"
+    deps: [FW-03, QA-01]
+    status: on-track
+    deliverables:
+      - "RC2 image with 11 verified fixes"
+      - "Fix-verification report"
+
+  - id: G3
+    type: gate
+    name: "Gate 3 — RC2 Ready"
+    owner: tpm
+    workstream: FW
+    start: "2026-11-27"
+    end: "2026-11-27"
+    deps: [FW-04]
+    status: on-track
+    entry_criteria:
+      - "All RC1 P0/P1 fixed and verified"
+      - "Regression suite green on RC2"
+    exit_criteria:
+      - "RC2 handed to QA and OEM staging"
+      - "Delta release notes published"
+
+  - id: FW-05
+    name: "Security review sign-off"
+    owner: sec_arch
+    workstream: FW
+    start: "2026-11-09"
+    end: "2026-12-04"
+    deps: [G1]
+    status: at-risk
+    slip_days: 5
+    deliverables:
+      - "Threat-model review completed"
+      - "Signed security sign-off memo"
+
+  # ---------------- Hardware ----------------
+  - id: HW-01
+    name: "DVT board bring-up complete"
+    owner: hw_lead
+    workstream: HW
+    start: "2026-09-14"
+    end: "2026-10-09"
+    deps: []
+    status: done
+    deliverables:
+      - "24/24 DVT systems booting to OS"
+      - "Bring-up issue log closed"
+
+  - id: HW-02
+    name: "Retimer parts allocation confirmed"
+    owner: hw_lead
+    workstream: HW
+    start: "2026-10-12"
+    end: "2026-10-30"
+    deps: []
+    status: at-risk
+    slip_days: 7
+    deliverables:
+      - "Supplier commit letter for 5k retimer units"
+      - "Dual-source qualification plan"
+
+  - id: HW-03
+    name: "Thermal corner validation (40C ambient)"
+    owner: hw_lead
+    workstream: HW
+    start: "2026-11-02"
+    end: "2026-11-20"
+    deps: [HW-02]
+    status: done
+    deliverables:
+      - "Thermal report: all hotspots within spec at 40C"
+      - "Fan curve v3 validated"
+
+  # ---------------- System Software ----------------
+  - id: SW-01
+    name: "Driver/FW interface spec frozen"
+    owner: sw_lead
+    workstream: SW
+    start: "2026-10-05"
+    end: "2026-10-16"
+    deps: []
+    status: done
+    deliverables:
+      - "IF spec v1.0 signed by FW + SW leads"
+
+  - id: SW-02
+    name: "In-band update tooling ready"
+    owner: sw_lead
+    workstream: SW
+    start: "2026-10-19"
+    end: "2026-11-13"
+    deps: [SW-01]
+    status: done
+    deliverables:
+      - "Update CLI + rollback support in lab"
+      - "Fleet update runbook draft"
+
+  - id: SW-03
+    name: "Telemetry schema v2 rollout"
+    owner: sw_lead
+    workstream: SW
+    start: "2026-11-16"
+    end: "2026-12-11"
+    deps: [FW-03]
+    status: on-track
+    deliverables:
+      - "Schema v2 deployed to pilot collectors"
+      - "Dashboard migration complete"
+  # ---------------- QA / Validation ----------------
+  - id: QA-01
+    name: "Regression suite green on RC1"
+    owner: qa_lead
+    workstream: QA
+    start: "2026-11-09"
+    end: "2026-11-13"
+    deps: [FW-03]
+    status: done
+    deliverables:
+      - "4,120/4,120 regression tests passing"
+      - "Coverage report archived"
+
+  - id: QA-02
+    name: "PCIe link-training stress sign-off"
+    owner: qa_lead
+    workstream: QA
+    start: "2026-11-16"
+    end: "2026-12-04"
+    deps: [QA-01]
+    status: at-risk
+    slip_days: 4
+    deliverables:
+      - "10k link-training cycles, <0.5% link-down events"
+      - "Stress report signed"
+
+  # ---------------- Release gates (continued) ----------------
+  - id: G4
+    type: gate
+    name: "Gate 4 — Release Candidate Sign-off"
+    owner: tpm
+    workstream: QA
+    start: "2026-12-18"
+    end: "2026-12-18"
+    deps: [FW-04, FW-05, QA-02, HW-03]
+    status: on-track
+    entry_criteria:
+      - "PCIe link-training stress sign-off (QA-02)"
+      - "Thermal corner validation pass (HW-03)"
+      - "Security review sign-off memo (FW-05)"
+      - "Telemetry schema v2 live (SW-03)"
+    exit_criteria:
+      - "RC declared golden by QA + FW leads"
+      - "OEM qualification (ring 1) and CSP staging (ring 2) unblocked"
+
+  # ---------------- OEM Enablement ----------------
+  - id: OEM-01
+    name: "OEM qual slots booked (2 OEMs)"
+    owner: oem_lead
+    workstream: OEM
+    start: "2026-10-19"
+    end: "2026-10-30"
+    deps: []
+    status: done
+    deliverables:
+      - "Qual slots confirmed with both OEM partners"
+      - "OEM test plan exchanged"
+
+  - id: OEM-02
+    name: "OEM qualification testing (ring 1)"
+    owner: oem_lead
+    workstream: OEM
+    start: "2026-12-21"
+    end: "2027-01-08"
+    deps: [G4]
+    status: on-track
+    deliverables:
+      - "OEM-A and OEM-B qual reports"
+      - "Interop issue log triaged"
+
+  - id: OEM-03
+    name: "OEM sign-off received"
+    owner: oem_lead
+    workstream: OEM
+    start: "2027-01-11"
+    end: "2027-01-11"
+    deps: [OEM-02]
+    status: on-track
+    deliverables:
+      - "Written OEM sign-off letters"
+
+  # ---------------- CSP Deployment ----------------
+  - id: CSP-01
+    name: "CSP pilot fleet staged (ring 2)"
+    owner: csp_lead
+    workstream: CSP
+    start: "2026-12-21"
+    end: "2026-12-29"
+    deps: [G4]
+    status: on-track
+    deliverables:
+      - "500-node pilot fleet imaged with golden RC"
+      - "Staging health report"
+
+  - id: CSP-02
+    name: "CSP pilot burn-in, 14 days (ring 2)"
+    owner: csp_lead
+    workstream: CSP
+    start: "2026-12-30"
+    end: "2027-01-12"
+    deps: [CSP-01]
+    status: on-track
+    deliverables:
+      - "14-day burn-in report, zero P0"
+      - "Fleet telemetry baseline"
+
+  - id: G5
+    type: gate
+    name: "Gate 5 — Production Release (go / no-go)"
+    owner: tpm
+    workstream: CSP
+    start: "2027-01-15"
+    end: "2027-01-15"
+    deps: [OEM-03, CSP-02]
+    status: on-track
+    entry_criteria:
+      - "OEM sign-off letters received (OEM-03)"
+      - "14-day CSP burn-in green, zero P0 (CSP-02)"
+      - "Support runbook published; support team trained"
+      - "Rollback plan tested in lab"
+      - "Release notes and errata finalized"
+    exit_criteria:
+      - "Go decision recorded with sign-offs (VP Eng, VP Ops)"
+      - "Production rollout (ring 3) begins per rollout plan"
+      - "Customer comms sent to OEM/CSP partners"
+
+# Customer release rings: each ring gates the next.
+release_rings:
+  - ring: 0
+    name: Internal
+    scope: "Lab fleets + internal dogfood (~2,000 nodes)"
+    entry: ["RC1 smoke pass complete", "24h soak green"]
+    exit: ["72h soak green", "No P0 for 7 days"]
+  - ring: 1
+    name: OEM Qualification
+    scope: "Two OEM partners' qual labs"
+    entry: ["Gate 4 sign-off", "OEM test plan exchanged"]
+    exit: ["OEM qual reports clean", "Written OEM sign-off"]
+  - ring: 2
+    name: CSP Pilot
+    scope: "500-node pilot fleet at CSP partner"
+    entry: ["Gate 4 sign-off", "Fleet staged and healthy"]
+    exit: ["14-day burn-in green", "Zero P0, telemetry baseline captured"]
+  - ring: 3
+    name: Production
+    scope: "Full fleet rollout per rollout plan"
+    entry: ["Gate 5 go decision", "Rollback plan tested"]
+    exit: ["Rollout complete", "30-day stability review scheduled"]
+
+# Risk register. probability / impact are 1-5; exposure = P x I.
+risks:
+  - id: R-01
+    title: "PCIe Gen6 link-training regression on retimer path"
+    workstream: QA
+    probability: 3
+    impact: 5
+    owner: qa_lead
+    status: open
+    trigger: ">2% link-down events in 10k-cycle stress run"
+    mitigation: "Early stress on DVT boards; retimer FW A/B versions in test matrix; weekly link-margin reviews with HW"
+    contingency: "Cap link speed to Gen5 for affected configs; respin schedule +2 weeks"
+
+  - id: R-02
+    title: "Retimer part supply delay"
+    workstream: HW
+    probability: 4
+    impact: 4
+    owner: hw_lead
+    status: open
+    trigger: "Supplier misses Oct 30 allocation commit"
+    mitigation: "Dual-source qualification in parallel; expedite fees approved; weekly supplier check-ins"
+    contingency: "Descope to validated alternate retimer; accept 2-week DVT slip"
+
+  - id: R-03
+    title: "Security review backlog delays sign-off"
+    workstream: FW
+    probability: 3
+    impact: 4
+    owner: sec_arch
+    status: open
+    trigger: "Review not started by Nov 16"
+    mitigation: "Pre-review engagement in October; phased submission (threat model first, code second)"
+    contingency: "Executive escalation to CISO; time-boxed conditional sign-off with follow-ups"
+
+  - id: R-04
+    title: "OEM qual slot slip"
+    workstream: OEM
+    probability: 3
+    impact: 4
+    owner: oem_lead
+    status: open
+    trigger: "Slot not confirmed by Oct 30"
+    mitigation: "Slots booked early with backup dates; shared test plan reduces on-site time"
+    contingency: "Compress pilot by 1 week; run OEM-B qual in parallel with CSP staging"
+
+  - id: R-05
+    title: "Thermal corner failure at 40C ambient"
+    workstream: HW
+    probability: 2
+    impact: 5
+    owner: hw_lead
+    status: open
+    trigger: "Any hotspot exceeds spec in DVT thermal runs"
+    mitigation: "Early CFD modeling; fan curve v3 validated ahead of DVT; margin added to heatsink spec"
+    contingency: "Revised fan curve + targeted airflow shrouds; schedule thermal re-test sprint"
+
+  - id: R-06
+    title: "In-band update tooling failure at fleet scale"
+    workstream: SW
+    probability: 2
+    impact: 5
+    owner: sw_lead
+    status: open
+    trigger: "Update failure rate >0.5% on 2k-node dogfood fleet"
+    mitigation: "Canary rollout (50 -> 500 -> 2000 nodes); idempotent update design; dry-run mode"
+    contingency: "Fall back to out-of-band update path; hotfix tooling in 1-week sprint"
+
+  - id: R-07
+    title: "CSP pilot surfaces scale-dependent bug"
+    workstream: CSP
+    probability: 3
+    impact: 3
+    owner: csp_lead
+    status: open
+    trigger: "Crash signature repeats on >5 pilot nodes"
+    mitigation: "14-day burn-in with full telemetry; daily pilot health reviews with CSP partner"
+    contingency: "Hotfix branch from golden RC; targeted patch release to pilot only"
+
+  - id: R-08
+    title: "Holiday coverage gap (Dec 24 - Jan 2)"
+    workstream: FW
+    probability: 2
+    impact: 3
+    owner: tpm
+    status: open
+    trigger: "Coverage roster shows single point of failure in any workstream"
+    mitigation: "Coverage roster published Dec 1; on-call pairs across time zones; freeze non-urgent changes"
+    contingency: "Contractor backfill for critical roles; defer non-blocking work to January"
+
+# RACI: R = responsible (does the work), A = accountable (final yes/no, exactly one),
+# C = consulted (input before decision), I = informed (told after).
+# timezone_note states when/where the decision is taken so no region is surprised.
+raci:
+  - id: D-01
+    decision: "Approve code-freeze scope"
+    due: "2026-10-23"
+    R: fw_lead
+    A: tpm
+    C: [qa_lead, hw_lead]
+    I: [oem_lead, csp_lead]
+    timezone_note: "Decided at weekly program review Thu 18:00 PT / Fri 10:00 Taipei / Fri 07:30 IST"
+
+  - id: D-02
+    decision: "Accept RC1 into validation"
+    due: "2026-11-06"
+    R: qa_lead
+    A: tpm
+    C: [fw_lead]
+    I: [sw_lead, oem_lead]
+    timezone_note: "Async sign-off in release tracker; 24h window covers all zones"
+
+  - id: D-03
+    decision: "Grant security-review exception or deferral"
+    due: "2026-12-04"
+    R: sec_arch
+    A: vp_eng
+    C: [fw_lead]
+    I: [tpm, qa_lead]
+    timezone_note: "Escalation review Tue 09:00 PT / 17:00 Taipei / 22:30 IST (recorded for Hyderabad)"
+
+  - id: D-04
+    decision: "Approve thermal spec waiver"
+    due: "2026-11-20"
+    R: hw_lead
+    A: vp_eng
+    C: [qa_lead]
+    I: [oem_lead, tpm]
+    timezone_note: "HW review Wed 17:00 PT / Thu 09:00 Taipei / Thu 06:30 IST"
+
+  - id: D-05
+    decision: "Enter OEM qualification (ring 1)"
+    due: "2026-12-18"
+    R: oem_lead
+    A: tpm
+    C: [qa_lead]
+    I: [csp_lead, sw_lead]
+    timezone_note: "Part of Gate 4 sign-off meeting; OEM partners join async via written sign-off"
+
+  - id: D-06
+    decision: "Expand CSP pilot fleet"
+    due: "2026-12-29"
+    R: csp_lead
+    A: tpm
+    C: [sw_lead]
+    I: [fw_lead, qa_lead]
+    timezone_note: "Daily pilot standup 18:30 PT / 10:30 Taipei / 08:00 IST during burn-in"
+
+  - id: D-07
+    decision: "Cut hotfix branch from golden RC"
+    due: "as needed"
+    R: fw_lead
+    A: tpm
+    C: [qa_lead]
+    I: [oem_lead, csp_lead, sw_lead, hw_lead]
+    timezone_note: "Emergency lane: TPM pages leads; decision within 4h regardless of zone"
+
+  - id: D-08
+    decision: "Production go / no-go"
+    due: "2027-01-15"
+    R: tpm
+    A: vp_eng
+    C: [fw_lead, hw_lead, sw_lead, qa_lead, oem_lead, csp_lead]
+    I: [vp_ops]
+    timezone_note: "Go/no-go review Thu 17:00 PT / Fri 09:00 Taipei / Fri 06:30 IST; VP Ops co-signs"
+
+  - id: D-09
+    decision: "Approve schedule change greater than 1 week"
+    due: "as needed"
+    R: tpm
+    A: vp_eng
+    C: [fw_lead, hw_lead, sw_lead, qa_lead, oem_lead, csp_lead]
+    I: [vp_ops]
+    timezone_note: "Exec review slot; written proposal 48h ahead so Taipei/Hyderabad can comment async"
+
+  - id: D-10
+    decision: "Publish post-mortem action items"
+    due: "2027-02-12"
+    R: tpm
+    A: vp_eng
+    C: [fw_lead, hw_lead, sw_lead, qa_lead, oem_lead, csp_lead]
+    I: [vp_ops]
+    timezone_note: "Post-mortem Fri 09:00 PT / Sat 01:00 Taipei — recorded; async comments accepted 5 days"
+
+# Program objectives and scope — rendered into release-plan.md
+objectives:
+  - "Ship BMC firmware v2.4.0 to production on 2027-01-15 with zero P0 defects"
+  - "Complete OEM qualification with two OEM partners and a 500-node CSP pilot burn-in"
+  - "Close all security review findings before Gate 4"
+  - "Demonstrate a repeatable release process reusable for v2.5.0"
+
+scope_in:
+  - "BMC firmware v2.4.0 for the MBX-8 baseboard"
+  - "In-band update tooling and telemetry schema v2"
+  - "OEM qualification support and CSP pilot deployment"
+  - "Release documentation, runbooks, and rollback plan"
+
+scope_out:
+  - "Next-gen baseboard hardware (out of scope for this release)"
+  - "Host driver feature development beyond the frozen interface spec"
+  - "Data-center network / fabric firmware"
